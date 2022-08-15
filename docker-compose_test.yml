@@ -1,0 +1,115 @@
+version: "3.8"
+services:
+
+  ####### Tracking service
+
+  tracking_service:
+    hostname: tracking_service
+    build: 
+        context: .
+        dockerfile: Dockerfile_tracking_service_test
+    env_file:
+      - docker-compose-conf/tracking-service_test.env
+    expose:
+      - "3000"
+    networks:
+      - test-net
+    depends_on:
+      - mariadb-galera-0
+      - kafka_test
+
+  ####### mysql cluster
+      
+  mariadb-galera-0:
+    container_name: mariadb-cluster-test
+    image: docker.io/bitnami/mariadb-galera:10.3
+    env_file:
+      - docker-compose-conf/mariadb-cluster_test.env
+    healthcheck:
+      test: ['CMD', '/opt/bitnami/scripts/mariadb-galera/healthcheck.sh']
+      interval: 15s
+      timeout: 5s
+      retries: 6
+    networks:
+      - test-net
+
+  mariadb-galera-test:
+    image: docker.io/bitnami/mariadb-galera:10.3
+    command:
+      - bash
+      - -ec
+      - |
+          sleep 20
+          exec /opt/bitnami/scripts/mariadb-galera/entrypoint.sh /opt/bitnami/scripts/mariadb-galera/run.sh
+    env_file:
+      - docker-compose-conf/mariadb-galera_test.env
+    healthcheck:
+      test: ['CMD', '/opt/bitnami/scripts/mariadb-galera/healthcheck.sh']
+      start_period: 20s
+      interval: 15s
+      timeout: 5s
+      retries: 6
+    depends_on:
+      - mariadb-galera-0
+    networks:
+      - test-net
+
+
+  ###### Kafka 
+  
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.2.1
+    container_name: zookeeper_test
+    env_file:
+      - docker-compose-conf/zookeeper_test.env
+    networks:
+      - test-net
+  
+  kafka_test:
+    image: confluentinc/cp-kafka:7.2.1
+    container_name: kafka_test
+    depends_on:
+      - zookeeper
+    env_file:
+      - docker-compose-conf/kafka_test.env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - test-net
+  
+  init-kafka_test:
+    image: confluentinc/cp-kafka:7.2.1
+    depends_on:
+      - kafka_test
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      # blocks until kafka is reachable
+      kafka-topics --bootstrap-server kafka_test:29092 --list
+
+      echo -e 'Creating kafka topics'
+      kafka-topics --bootstrap-server kafka_test:29092 --create --if-not-exists --topic users-tracked --replication-factor 1 --partitions 1 --config retention.ms=3600000 --config cleanup.policy=compact
+
+      echo -e 'Successfully created the following topics:'
+      kafka-topics --bootstrap-server kafka_test:29092 --list
+      "
+    networks:
+      - test-net
+     
+   ####### Cli client
+
+  cli_client:
+    hostname: cli_client
+    build: 
+        context: .
+        dockerfile: Dockerfile_cli_client_test
+    networks:
+      - test-net
+    env_file:
+      - docker-compose-conf/cli-client_test.env
+    depends_on:
+      - tracking_service
+      - kafka_test
+   
+networks:
+  test-net:
