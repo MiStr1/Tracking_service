@@ -18,7 +18,7 @@ For more information on **Tracking service** check `TrackingService/README.md`.
 - Docker Compose  
 - Node  
 
-## Build and run Tracking service, Kafka, and MariaDB cluster  
+## Build and run Tracking service, Kafka and MariaDB cluster  
   
 
 First, build services with:  
@@ -67,7 +67,7 @@ node ./dist/kafka_consumer.js --group_id group_id --filter one_id,anotherid
 Where you can define consumer group id and pass a list of user ids separated with a comma for which the consumer will log messages.  
   
 
-## Test Tracking service, Kafka, MariaDB cluster and Cli client  
+## Test Tracking service, MariaDB cluster, Kafka and Cli client  
   
 
 First, build services with:  
