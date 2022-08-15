@@ -34,15 +34,13 @@ sudo docker-compose up --build --scale tracking_service=x --scale mariadb-galera
 ```  
 
 Where x is the number of tracking_service container instances and y is the number of replicas in the cluster. If scale  
-parameters are not define they will default to 1.  
+parameters are not defined they will default to 1.  
   
 
 Tracking services can be reached through nginx load balancer listening at localhost at port 8080.  
   
 
-Tracking service has one GET endpoint at "/<*accountId*>?*data=<*data*>" which receives path parameter *accountId* and  
-query string parameter *data*. If a user with id *accountId* exists in MariaDB cluster and has isActive value set to True then  
-tracking service sends *accountId*, *data* and a timestamp to Kafka to topic *users-tracked*.   
+Tracking service has one GET endpoint at "/<*accountId*>?*data=<*data*>" which receives path parameter *accountId* and query string parameter *data*. If a user with id *accountId* exists in MariaDB cluster and has isActive value set to True then tracking service sends *accountId*, *data* and a timestamp to Kafka to topic *users-tracked*.   
   
 
 ## Build and run Cli client  
@@ -59,16 +57,14 @@ And then run client with
 NPM start  
 ```  
 
-This will start a Kafka consumer with base parameter where consumer group id is *my-group* and there is no filter for user ids.  
-To set custom parameters instead run client with:  
+This will start a Kafka consumer with base parameter where consumer group id is *my-group* and there is no filter for user ids. To set custom parameters instead run client with:  
 
   ```bash  
 tsc  
 node ./dist/kafka_consumer.js --group_id group_id --filter one_id,anotherid  
 ```  
 
-Where you can define consumer group id and pass a list of user ids separated with comma for which the consumer will  
-log messages.  
+Where you can define consumer group id and pass a list of user ids separated with comma for which the consumer will log messages.  
   
 
 ## Test Tracking service, Kafka, MariaDB cluster and Cli client  
@@ -86,9 +82,7 @@ And then run them with:
 sudo docker-compose -f docker-compose_test.yml up --build --scale tracking_service=x --scale mariadb-galera=y  
 ```  
 
-Where x is the number of tracking_service container instances and y is the number of replicas in the cluster. If scale  
-parameters are not defined they will default to 1.  
+Where x is the number of tracking_service container instances and y is the number of replicas in the cluster. If scale parameters are not defined they will default to 1.  
   
 
-If tests were successful then the containers containing tracking_service instances and cli_client container will exit with  
- exit code 0. If tests were not successful then they will exit with code 1.  
+If tests were successful then the containers containing tracking_service instances and cli_client container will exit with exit code 0. If tests were not successful then they will exit with code 1.  
